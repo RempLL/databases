@@ -1,40 +1,65 @@
 package com.example.database.service;
 
-import com.example.database.model.Faculty;
+import com.example.database.dto.FacultyDtoIn;
+import com.example.database.dto.FacultyDtoOut;
+import com.example.database.entity.Faculty;
+import com.example.database.mapper.FacultyMapper;
+import com.example.database.repository.FacultyRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class FacultyService {
-    private final HashMap<Long, Faculty> facultyHashMap = new HashMap<>();
 
-    private long lastId = 0;
 
-    public Faculty addFaculty(Faculty faculty){
-        faculty.setId(++lastId);
-        facultyHashMap.put(++lastId,faculty);
-        return faculty;
+    private final FacultyRepository facultyRepository;
+    private final FacultyMapper facultyMapper;
+
+    public FacultyService(FacultyRepository facultyRepository, FacultyMapper facultyMapper) {
+        this.facultyRepository = facultyRepository;
+        this.facultyMapper = facultyMapper;
     }
 
-    public Faculty getFaculty(long id){
-        return facultyHashMap.get(id);
+
+    public FacultyDtoOut addFaculty(FacultyDtoIn facultyDtoIn) {
+        return facultyMapper
+                .toDto(facultyRepository
+                        .save(facultyMapper
+                                .toEntity(facultyDtoIn)));
     }
 
-    public Faculty setFaculty(Faculty faculty){
-        facultyHashMap.put(faculty.getId(),faculty);
-        return faculty;
+    public FacultyDtoOut getFaculty(long id) {
+        return facultyRepository.findById(id)
+                .map(facultyMapper::toDto)
+                .orElseThrow();
     }
 
-    public Faculty deleteFaculty(long id){
-        return facultyHashMap.remove(id);
+    public FacultyDtoOut setFaculty(long id, FacultyDtoIn facultyDtoIn) {
+        return facultyRepository.findById(id)
+                .map(oldFaculty -> {
+                    oldFaculty.setColor(facultyDtoIn.getColor());
+                    oldFaculty.setName(facultyDtoIn.getName());
+                    return facultyMapper.toDto(facultyRepository.save(oldFaculty));
+                })
+                .orElseThrow();
     }
 
-    public Collection<Faculty> facultyCollection(String color) {
-        return facultyHashMap.values().stream()
-                .filter(e->e.getColor().equals(color))
+    public FacultyDtoOut deleteFaculty(long id) {
+        Faculty faculty = facultyRepository.findById(id)
+                .orElseThrow();
+        facultyRepository.delete(faculty);
+        return facultyMapper.toDto(faculty);
+    }
+
+    public Collection<FacultyDtoOut> facultyCollection(String color) {
+        return Optional.ofNullable(color)
+                .map(facultyRepository::findAllByColor)
+                .orElseGet(facultyRepository::findAll)
+                .stream()
+                .map(facultyMapper::toDto)
                 .collect(Collectors.toList());
     }
 }

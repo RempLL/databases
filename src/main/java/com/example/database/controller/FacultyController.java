@@ -1,6 +1,7 @@
 package com.example.database.controller;
 
-import com.example.database.model.Faculty;
+import com.example.database.dto.FacultyDtoIn;
+import com.example.database.dto.FacultyDtoOut;
 import com.example.database.service.FacultyService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,27 +18,27 @@ public class FacultyController {
     }
 
     @DeleteMapping("delete/{id}")
-    public Faculty delStudent(@PathVariable long id){
+    public FacultyDtoOut delStudent(@PathVariable long id) {
         return facultyService.deleteFaculty(id);
     }
 
     @GetMapping("get/{id}")
-    public Faculty getStudent(@PathVariable long id){
+    public FacultyDtoOut getStudent(@PathVariable long id) {
         return facultyService.getFaculty(id);
     }
 
-    @PutMapping("set")
-    public Faculty setStudent(@RequestBody Faculty faculty){
-        return facultyService.setFaculty(faculty);
+    @PutMapping("{id}")
+    public FacultyDtoOut setStudent(@PathVariable long id, @RequestBody FacultyDtoIn facultyDtoIn) {
+        return facultyService.setFaculty(id, facultyDtoIn);
     }
 
     @PostMapping("add")
-    public Faculty addStudent(@RequestBody Faculty faculty){
-        return facultyService.addFaculty(faculty);
+    public FacultyDtoOut addStudent(@RequestBody FacultyDtoIn facultyDtoIn) {
+        return facultyService.addFaculty(facultyDtoIn);
     }
 
     @GetMapping("collect")
-    public Collection<Faculty> facultyCollection(String color){
+    public Collection<FacultyDtoOut> facultyCollection(String color) {
         return facultyService.facultyCollection(color);
     }
 
